@@ -1,11 +1,9 @@
-import { Home } from "./home/page";
-
+import { Home } from './home/page'
 
 export default function Index() {
-  return (
-    <div>
-      <Home/>
-    </div>
-  )
+	return (
+		<div>
+			<Home />
+		</div>
+	)
 }
-
