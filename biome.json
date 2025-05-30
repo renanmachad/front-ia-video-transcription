@@ -7,7 +7,18 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"ignore": [".next/**", ".trigger/**"]
+		"ignore": [
+			".next/**",
+			".trigger/**",
+			".vscode/**",
+			"node_modules/**",
+			"dist/**",
+			"build/**",
+			"coverage/**",
+			"out/**",
+			"public/static/**",
+			"public/assets/**"
+		]
 	},
 	"formatter": {
 		"enabled": true,
@@ -33,7 +44,7 @@
 	"javascript": {
 		"formatter": {
 			"quoteStyle": "single",
-			"semicolons": "asNeeded"
+			"semicolons": "always"
 		}
 	}
 }

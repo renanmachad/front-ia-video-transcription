@@ -19,7 +19,8 @@ import uploadVideoAndLaunchJob from '../lib/actions'
 
 export function FileForm() {
 	const [videoPreview, setVideoPreview] = useState<string | null>(null)
-
+	const [runId, setRunId] = useState<string>() // ✨ NEW
+	const [audioUrl, setAudioUrl] = useState<string | null>(null)
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 	})
