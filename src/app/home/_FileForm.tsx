@@ -14,10 +14,10 @@ import { formSchema } from '@/validations/video'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { type ExternalToast, toast } from 'sonner'
 // biome-ignore lint/style/useImportType: <explanation>
 import { z } from 'zod'
 import uploadVideoAndLaunchJob from '../lib/actions'
-import { type ExternalToast, toast } from 'sonner'
 
 const toastError: ExternalToast = {
 	style: {
@@ -42,6 +42,11 @@ export function FileForm() {
 
 	async function handleSubmit(data: z.infer<typeof formSchema>) {
 		try {
+			if (videoPreview) {
+				// Persist preview so the next page can display it
+				sessionStorage.setItem('videoPreview', videoPreview)
+			}
+
 			await uploadVideoAndLaunchJob({
 				video: data.videoFile[0] as File,
 			})
