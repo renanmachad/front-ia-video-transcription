@@ -42,6 +42,11 @@ export function FileForm() {
 
 	async function handleSubmit(data: z.infer<typeof formSchema>) {
 		try {
+			if (videoPreview) {
+				// Persist preview so the next page can display it
+				sessionStorage.setItem('videoPreview', videoPreview)
+			}
+
 			await uploadVideoAndLaunchJob({
 				video: data.videoFile[0] as File,
 			})
