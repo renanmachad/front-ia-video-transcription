@@ -14,10 +14,10 @@ import { formSchema } from '@/validations/video'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { type ExternalToast, toast } from 'sonner'
 // biome-ignore lint/style/useImportType: <explanation>
 import { z } from 'zod'
 import uploadVideoAndLaunchJob from '../lib/actions'
-import { type ExternalToast, toast } from 'sonner'
 
 const toastError: ExternalToast = {
 	style: {

@@ -1,11 +1,13 @@
-export default async function RunPage({
+import RunProgress from './RunProgress'
+
+export default function RunPage({
 	params,
 	searchParams,
 }: {
-	params: Promise<{ id: string }>
-	searchParams: Promise<{ accessToken: string }>
+	params: { id: string }
+	searchParams: { accessToken: string }
 }) {
-	console.log('RunPage', params, searchParams)
-
-	return <></>
+	return (
+		<RunProgress runId={params.id} accessToken={searchParams.accessToken} />
+	)
 }
