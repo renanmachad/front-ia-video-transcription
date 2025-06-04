@@ -4,6 +4,7 @@ import { Progress } from '@/components/ui/progress'
 import { useRun } from '@trigger.dev/react-hooks'
 import { useEffect, useState } from 'react'
 
+
 interface Props {
 	runId: string
 	accessToken: string
