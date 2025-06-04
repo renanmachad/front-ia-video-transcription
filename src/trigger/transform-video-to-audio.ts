@@ -2,11 +2,11 @@ import { s3 } from '@/lib/constants'
 import { PutObjectCommand } from '@aws-sdk/client-s3'
 import { configure, logger, schemaTask } from '@trigger.dev/sdk/v3'
 import ffmpeg from 'fluent-ffmpeg'
-import fs from 'fs/promises'
+import fs from 'node:fs/promises'
 import nodeFetch from 'node-fetch'
 import { Readable } from 'node:stream'
-import os from 'os'
-import path from 'path'
+import os from 'node:os'
+import path from 'node:path'
 import { z } from 'zod'
 
 configure({
@@ -25,7 +25,7 @@ export const transformVideoToAudioTask = schemaTask({
 	id: 'transform-video-to-audio',
 	schema: schema,
 	maxDuration: 300,
-	run: async ({ videoUrl, videoName, videoType }, { ctx }) => {
+	run: async ({ videoUrl, videoName, }) => {
 		console.log('Transforming video to audio...')
 		console.log('Video file:', videoUrl)
 
@@ -60,13 +60,17 @@ export const transformVideoToAudioTask = schemaTask({
 
 		// Log audio extraction results
 		logger.log(`Extracted audio size: ${audioSize} bytes`)
-		logger.log(`Temporary audio file created`, { outputPath })
+		logger.log('Temporary audio file created', { outputPath })
 
 		// Create the S3 for the extracted audio, using the base name of the output path
 		const s3Key = `extracted-audio/${path.basename(outputPath)}`
 
+		const bucketName = process.env.BUCKET_NAME;
+		if (!bucketName) {
+			throw new Error('BUCKET_NAME environment variable is not defined');
+		}
 		const uploadCommand = new PutObjectCommand({
-			Bucket: process.env.BUCKET_NAME!,
+			Bucket: bucketName,
 			Key: s3Key,
 			Body: audioBuffer,
 			ContentType: 'audio/wav',
@@ -74,10 +78,12 @@ export const transformVideoToAudioTask = schemaTask({
 		})
 
 		await s3.send(uploadCommand)
-		logger.log(`Audio file uploaded to S3`, { s3Key })
+		logger.log('Audio file uploaded to S3', { s3Key })
 
 		await fs.unlink(outputPath)
-		logger.log(`Temporary audio file deleted`, { outputPath })
+		logger.log('Temporary audio file deleted', { outputPath })
+
+		// TODO: Transform the audio to text using openAI 
 		return { message: 'Video file transformed to audio successfully', s3Key }
 	},
 })

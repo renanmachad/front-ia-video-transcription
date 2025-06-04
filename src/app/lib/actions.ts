@@ -1,28 +1,21 @@
 'use server'
-import { s3 } from '@/lib/constants' // your pre-configured S3Client
-import { transformVideoToAudioTask } from '@/trigger/transform-video-to-audio'
+import { s3 } from '@/lib/constants' 
+import type { transformVideoToAudioTask } from '@/trigger/transform-video-to-audio'
 import { GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { tasks } from '@trigger.dev/sdk/v3'
+import { redirect } from 'next/navigation'
 
 export default async function uploadVideoAndLaunchJob({
 	video,
 }: {
-	video: File // comes from the browser
+	video: File 
 }) {
-	/* ------------------------------------------------------------------ */
-	/* 1.  Build a unique S3 key                                           */
-	/* ------------------------------------------------------------------ */
 	const Key = `uploads/${crypto.randomUUID()}_${video.name}`
 
-	/* ------------------------------------------------------------------ */
-	/* 2.  Upload the file to S3 (single call – no presign)                */
-	/*     If the file is large you can switch to UploadPartCopy, but      */
-	/*     for most web uploads a simple PutObject is fine.               */
-	/* ------------------------------------------------------------------ */
 	await s3.send(
 		new PutObjectCommand({
-			Bucket: process.env.BUCKET_NAME!,
+			Bucket: process.env.BUCKET_NAME || "",
 			Key,
 			Body: Buffer.from(await video.arrayBuffer()), // or stream if huge
 			ContentType: video.type,
@@ -30,23 +23,17 @@ export default async function uploadVideoAndLaunchJob({
 		}),
 	)
 
-	/* ------------------------------------------------------------------ */
-	/* 3.  Generate a GET presigned URL for Trigger.dev                    */
-	/* ------------------------------------------------------------------ */
 	const downloadUrl = await getSignedUrl(
 		s3,
 		new GetObjectCommand({
-			Bucket: process.env.BUCKET_NAME!,
-			Key, // same object we just stored
+			Bucket: process.env.BUCKET_NAME || "",
+			Key, 
 		}),
-		{ expiresIn: 60 * 60 }, // 1 h is typical
+		{ expiresIn: 60 * 60 }, 
 	)
 
-	/* ------------------------------------------------------------------ */
-	/* 4.  Kick off the background task                                   */
-	/* ------------------------------------------------------------------ */
 	const run = await tasks.trigger<typeof transformVideoToAudioTask>(
-		'transform-video-to-audio', // task ID
+		'transform-video-to-audio', 
 		{
 			videoUrl: downloadUrl,
 			videoName: video.name,
@@ -54,5 +41,5 @@ export default async function uploadVideoAndLaunchJob({
 		},
 	)
 
-	return { runId: run.id, token: run.publicAccessToken }
+	return redirect(`/runs/${run.id}?accessToken=${run.publicAccessToken}`) 
 }

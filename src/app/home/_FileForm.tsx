@@ -14,31 +14,39 @@ import { formSchema } from '@/validations/video'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+// biome-ignore lint/style/useImportType: <explanation>
 import { z } from 'zod'
 import uploadVideoAndLaunchJob from '../lib/actions'
+import { type ExternalToast, toast } from 'sonner'
+
+const toastError: ExternalToast = {
+	style: {
+		backgroundColor: '#f8d7da',
+	},
+}
 
 export function FileForm() {
 	const [videoPreview, setVideoPreview] = useState<string | null>(null)
-	const [runId, setRunId] = useState<string>() // ✨ NEW
-	const [audioUrl, setAudioUrl] = useState<string | null>(null)
+
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 	})
 
 	function handleFileChange(files: FileList | null) {
-		if (files && files[0]) {
+		if (files?.[0]) {
 			const file = files[0]
-			setVideoPreview(URL.createObjectURL(file)) // Generate a preview URL
-			form.setValue('videoFile', files) // Update the form state
+			setVideoPreview(URL.createObjectURL(file))
+			form.setValue('videoFile', files)
 		}
 	}
 
 	async function handleSubmit(data: z.infer<typeof formSchema>) {
-		console.log('Form data:', data)
 		try {
-			uploadVideoAndLaunchJob({ video: data.videoFile[0] as File })
+			await uploadVideoAndLaunchJob({
+				video: data.videoFile[0] as File,
+			})
 		} catch (error) {
-			console.error('Error uploading video:', error)
+			toast.error(`Erro ao enviar o vídeo.${error}`, toastError)
 		}
 	}
 
@@ -48,7 +56,7 @@ export function FileForm() {
 				<FormField
 					control={form.control}
 					name="videoFile"
-					render={({ field }) => (
+					render={() => (
 						<FormItem>
 							<FormLabel>Video</FormLabel>
 							<FormControl>
@@ -66,11 +74,14 @@ export function FileForm() {
 				{videoPreview && (
 					<div className="mt-4">
 						<p className="text-sm font-medium">Preview:</p>
-						<video
-							src={videoPreview}
-							controls
-							className="mt-2 w-full max-w-md"
-						/>
+						<video src={videoPreview} controls className="mt-2 w-full max-w-md">
+							<track
+								kind="captions"
+								src={videoPreview}
+								label="No captions available"
+								default
+							/>
+						</video>
 					</div>
 				)}
 				<Button type="submit" className="hover:cursor-pointer">
